@@ -1,0 +1,14 @@
+.gamebox {
+    display: inline-block;
+    width: 1000px;
+    margin: 20px 20px;
+    height: 750px;
+    background: #E0E0E0;
+}
+
+.mgsbox {
+    background: #3d3d3d;
+    height: 28px;
+    width: 100%;
+    font-size: 12px;
+}

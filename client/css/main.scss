@@ -1,0 +1,44 @@
+@import "init.scss";
+#room {
+    height: 100%;
+}
+
+#gamebox {
+    float: left;
+    width: 1000px;
+    height: 750px;
+    background: #E0E0E0;
+    svg {
+    	width: 1000px;
+    	height: 750px;
+        rect {
+            x: 200;
+            -webkit-transition: x 2s;
+        }
+    }
+}
+
+#chatbox {
+    position: absolute;
+    right: 0;
+    height: 100%;
+    width: 350px;
+    overflow: hidden;
+    .head-box {
+        background: #E0E0E0;
+        width: 100%;
+        #onlinecount {
+            max-height: 80px;
+            overflow: auto;
+        }
+    }
+    #doc-box {
+        max-height: 650px;
+        overflow: auto;
+    }
+    .input-box {
+        position: absolute;
+        right: 100px;
+        bottom: 50px;
+    }
+}

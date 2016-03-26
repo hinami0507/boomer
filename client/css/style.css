@@ -1,0 +1,86 @@
+body, h1, h2, h3, h4, h5, h6, hr, p, blockquote, dl, dt, dd, ul, ol, li, pre, form, fieldset, legend, button, input, textarea, th, td {
+  margin: 0;
+  padding: 0; }
+
+body, button, input, select, textarea {
+  font: 12px/1.5tahoma, arial, \5b8b\4f53; }
+
+h1, h2, h3, h4, h5, h6 {
+  font-size: 100%; }
+
+address, cite, dfn, em, var {
+  font-style: normal; }
+
+code, kbd, pre, samp {
+  font-family: couriernew, courier, monospace; }
+
+small {
+  font-size: 12px; }
+
+ul, ol {
+  list-style: none; }
+
+a {
+  text-decoration: none; }
+
+a:hover {
+  text-decoration: underline; }
+
+sup {
+  vertical-align: text-top; }
+
+sub {
+  vertical-align: text-bottom; }
+
+legend {
+  color: #000; }
+
+fieldset, img {
+  border: 0; }
+
+button, input, select, textarea {
+  font-size: 100%; }
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0; }
+
+button {
+  cursor: pointer; }
+
+#room {
+  height: 100%; }
+
+#gamebox {
+  float: left;
+  width: 1000px;
+  height: 750px;
+  background: #E0E0E0; }
+  #gamebox svg {
+    width: 1000px;
+    height: 750px; }
+    #gamebox svg rect {
+      x: 200;
+      -webkit-transition: x 2s; }
+
+#chatbox {
+  position: absolute;
+  right: 0;
+  height: 100%;
+  width: 350px;
+  overflow: hidden; }
+  #chatbox .head-box {
+    background: #E0E0E0;
+    width: 100%; }
+    #chatbox .head-box #onlinecount {
+      max-height: 80px;
+      overflow: auto; }
+  #chatbox #doc-box {
+    max-height: 650px;
+    overflow: auto; }
+  #chatbox .input-box {
+    position: absolute;
+    right: 100px;
+    bottom: 50px; }
+
+/*# sourceMappingURL=style.css.map */
