@@ -59,9 +59,6 @@ button {
   #gamebox svg {
     width: 1000px;
     height: 750px; }
-    #gamebox svg rect {
-      x: 200;
-      -webkit-transition: x 2s; }
 
 #chatbox {
   position: absolute;
