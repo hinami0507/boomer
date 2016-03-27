@@ -157,126 +157,134 @@
     };
 })();
 
-var table = document.getElementById("gamebox");
-
-
-//定义局部变量
-
-var myball = document.getElementById("ball");
-var directX = 1; //定义x轴方向
-var directY = -1; //定义y轴方向
-var ballX = myball.cx.baseVal.value; //定义x轴坐标
-var ballY = myball.cy.baseVal.value; //定义y轴坐标
-var speed = 5; //定义一个速度
-function ballMove() {
-    ballX = myball.cx.baseVal.value + directX * speed;
-    ballY = myball.cy.baseVal.value + directY * speed;
-    //改变div的left,top的值
-    myball.cx.baseVal.value = ballX;
-    myball.cy.baseVal.value = ballY;
-    //判断x轴什么时候转向
-    if (ballX >= table.clientWidth || ballX <= 0) {
-        //clientWidth浏览器不带滚动条的宽度;clientHeight浏览器不带工具栏菜单栏以及滚动条等的高度
-        directX = -directX; //offsetWidth可以返回一个对象的实际宽度(不带单位)offsetHeight类同
-    }
-    //判断y轴何时转向
-    if (ballY >= table.clientHeight || ballY <= 0) {
-        directY = -directY;
-    }
-};
-
-
-function stop() {
-    clearInterval(stopmove);
-};
 
 
 
-function createPlayer1(userid, role, pos) {
-    this.role = "p" + role;
-    this.speed = 20;
-    p1.setAttribute("x", 50);
-    p1.setAttribute("y", 50);
 
-    this.addSpeed = function() {
-        this.speed++;
-    };
-    this.catchball = function(x, y) {
-        myball.cx.baseVal.value = x;
-        myball.cy.baseVal.value = y;
-    }
-    this.move = function(tar) {
-        switch (tar) {
-            case 37:
-                if (p1.x.baseVal.value > 0) { p1.setAttribute("x", p1.x.baseVal.value - this.speed) }; //左}
-                break;
-            case 38:
-                if (p1.y.baseVal.value > 0) { p1.setAttribute("y", p1.y.baseVal.value - this.speed) }; //上
-                break;
-            case 39:
-                if (p1.x.baseVal.value < 900) { p1.setAttribute("x", p1.x.baseVal.value + this.speed) }; //右
-                break;
-            case 40:
-                if (p1.y.baseVal.value < 350) { p1.setAttribute("y", p1.y.baseVal.value + this.speed) }; //下
-                break;
-            default:
-                break;
+var game = {
+    "p1": {
+        width: 100,
+        speed: 20,
+        x: 390,
+        y: 150,
+        boundary: {
+            l: 0,
+            u: 0,
+            r: 0,
+            d: 0
+        }
+    },
+    "p2": {
+        width: 100,
+        speed: 20,
+        x: 390,
+        y: 600,
+        boundary: {
+            l: 0,
+            u: 380,
+            r: 900,
+            d: 740
         }
     }
 }
 
-function createPlayer2(userid, role, pos) {
-    this.role = "p" + role;
-    this.speed = 20;
-    p2.setAttribute("x", 50);
-    p2.setAttribute("y", 600);
+var p1 = document.getElementById("p1");
+var p2 = document.getElementById("p2");
+var table = document.getElementById("gamebox");
+function createBall(x,y,dx,dy,speed){
+	this.ball = document.getElementById("ball");
+	this.ball.cx =x;
+	this.ball.cy =y;
+	this.x = x;
+	this.y = y;
+	this.dx = dx;
+	this.dy = dy;
+	this.spe = speed;
+	this.attach = function(x,y){
+		this.ball.cx.baseVal.value=x;
+		this.ball.cy.baseVal.value=y;
+	}
+	this.impact = function(){
+		if(this.y == player1.y && this.x>=player1.x && this.x<=player1.x+player1.width )
+			return true;
+		if(this.y == player2.y && this.x>=player2.x && this.x<=player2.x+player2.width )
+			return true;
+	}
+	this.ballMove = function(){
+		this.x = this.ball.cx.baseVal.value + this.dx *this.spe;
+		this.y = this.ball.cy.baseVal.value + this.dy *this.spe;
+		this.ball.cx.baseVal.value = this.x;
+		this.ball.cy.baseVal.value = this.y;
+		if(this.x>table.clientWidth||this.x<0){this.dx = -this.dx;}
+		if(this.y>table.clientHeight||this.y<0||this.impact()){this.dy = -this.dy;}
+	}
+}
+
+
+var myball = new createBall(50,50,1,-1,5);
+
+
+
+
+
+
+
+
+function createPlayer(userid, role, pos) {
+    this.player = document.getElementById("p" + role);
+    this.date = eval("game.p"+role);
+    this.speed = this.date.speed;
+    this.width = this.date.width;
+    this.player.setAttribute("width", this.width);
+    this.player.setAttribute("x", this.date.x);
+    this.player.setAttribute("y", this.date.y);
+    this.x =this.player.x.baseVal.value;
+    this.y =this.player.y.baseVal.value;
     this.catball = 1;
     this.addSpeed = function() {
         this.speed++;
     };
-    this.catchball = function(x, y) {
-        if (this.catball == 1) {
-            myball.cx.baseVal.value = x;
-            myball.cy.baseVal.value = y;
-        }
+    this.addWidth = function() {
+        this.width += 20;
+        this.player.setAttribute("width", this.width);
     }
-    this.throwBall = function(){
-    	var stopmove = setInterval("ballMove()", 20);
+    this.catchball = function(x, y) {
+            myball.attach(x,y);
+    }
+    this.throwBall = function() {
+        var stopmove = setInterval("myball.ballMove()", 20);
     }
     this.move = function(tar) {
-    	var xp =p2.x.baseVal.value;
-    	var yp =p2.y.baseVal.value;
+        this.x = this.player.x.baseVal.value;
+        this.y = this.player.y.baseVal.value;
+        if (this.catball == 1)
+        {this.catchball(this.x, this.y);}
         switch (tar) {
             case 37:
-                if (p2.x.baseVal.value > 0) {
-                    p2.setAttribute("x", xp - this.speed);
-                    this.catchball(xp, yp);
-                }; //左}
+                if (this.x > this.date.boundary.l) {
+                    this.player.setAttribute("x", this.x - this.speed);
+                }; //左
                 break;
             case 38:
-                if (yp > 380) {
-                    p2.setAttribute("y", yp - this.speed);
-                    this.catchball(xp, yp);
+                if (this.y > this.date.boundary.u) {
+                    this.player.setAttribute("y", this.y - this.speed);
                 }; //上
                 break;
             case 39:
-                if (xp < 900) {
-                    p2.setAttribute("x", xp + this.speed);
-                    this.catchball(xp, yp);
+                if (this.x < this.date.boundary.r) {
+                    this.player.setAttribute("x", this.x + this.speed);
                 }; //右
                 break;
             case 40:
-                if (yp < 740) {
-                    p2.setAttribute("y", yp + this.speed);
-                    this.catchball(xp, yp);
+                if (this.y < this.date.boundary.d) {
+                    this.player.setAttribute("y", this.y + this.speed);
                 }; //下
                 break;
             case 32:
-            	if(this.catball==1)
-            		{
-            			this.throwBall();
-            			this.catball=0;
-            		}
+                if (this.catball == 1) {
+                    this.throwBall();
+                    this.catball = 0;
+                }
                 break;
             default:
                 break;
@@ -284,12 +292,11 @@ function createPlayer2(userid, role, pos) {
     }
 }
 var d = document;
-p1 = document.getElementById("p1");
-var player1 = new createPlayer1(1, 1, "up");
-var player2 = new createPlayer2(2, 2, "down");
+var player1 = new createPlayer(1, 1, "up");
+var player2 = new createPlayer(2, 2, "down");
 
 d.addEventListener('keydown', function(event) {
     var key;
     if (event.charCode) { key = event.charCode; } else { key = event.keyCode; };
-    if (key == 37 || key == 38 || key == 39 || key == 40||key==32) { player2.move(key); }
+    if (key == 37 || key == 38 || key == 39 || key == 40 || key == 32) { player2.move(key); }
 });
