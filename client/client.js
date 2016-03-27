@@ -19,6 +19,7 @@ w.CHAT = {
     screenheight: w.innerHeight ? w.innerHeight : dx.clientHeight,
     username: null,
     userid: null,
+    gameinput: null,
     socket: null,
     //让浏览器滚动条保持在最低部
     scrollToBottom: function() {
@@ -71,8 +72,7 @@ w.CHAT = {
         var html = '';
         html += '<div class="msg-system">';
         html += user.username;
-        html += (action == 'login') ? ' 加入了聊天室' : ' 退出了聊天室';
-        html += (action == )
+        html += ":"+action;
         html += '</div>';
         var section = d.createElement('section');
         section.className = 'wordbox';
@@ -109,15 +109,18 @@ w.CHAT = {
         this.socket.emit('matchJoin', obj);
         return false;
     },
-    //比赛实况，向服务器提交游戏输入
-    matchLiveFn: function(move) {
-        var obj = {
-            userid: this.userid,
-            move: move
-        };
-        this.socket.emit('matchLive', obj);
+    match: function(move) {
+        if (nowinput != ''&& this.userid) {
+            var obj = {
+                userid: this.userid,
+                username: move
+            };
+            this.socket.emit('match', obj);
+        }
         return false;
-    }
+    },
+
+
 
         init: function(username) {
         /*
@@ -132,8 +135,8 @@ w.CHAT = {
         this.scrollToBottom();
 
         //连接websocket后端服务器
-        this.socket = io.connect('ws://localhost:3000/');
-        //this.socket = io.connect('ws://demo.hxz.im:3000');
+        //this.socket = io.connect('ws://localhost:3000/');
+        this.socket = io.connect('ws://sock.hxz.im:3000');
 
         //告诉服务器端有用户登录
         this.socket.emit('login', { userid: this.userid, username: this.username });
@@ -151,17 +154,17 @@ w.CHAT = {
             CHAT.updateSysMsg(o, 'matchJoin');
         });
         //监听用户游戏实况
-        this.socket.on('matchLive', function(o) {
-            CHAT.updateSysMsg(o, 'matchJoin');
+        this.socket.on('match', function(o) {
+            CHAT.updateSysMsg(o, 'match');
         });
         //监听用户退出比赛
         this.socket.on('matchExit', function(o) {
             CHAT.updateSysMsg(o, 'matchExit');
         });
+        //监听用户退出游戏队列
         this.socket.on('playerExit', function(o) {
             CHAT.updateSysMsg(o, 'playerExit');
         });
-
         //监听用户退出
         this.socket.on('logout', function(o) {
             CHAT.updateSysMsg(o, 'logout');
@@ -202,11 +205,12 @@ d.getElementById("content").onkeydown = function(e) {
         CHAT.submit();
     }
 };
-
-
-
-
-// })();
+d.onkeydown = function(e) {
+    e = e || event;
+    if (e.keyCode) {
+        CHAT.match(e.keyCode);
+    }
+};
 
 
 
@@ -342,13 +346,7 @@ function createPlayer(userid, role, pos) {
         }
     }
 }
-var d = document;
+
 var player1 = new createPlayer(1, 1, "up");
 var player2 = new createPlayer(2, 2, "down");
 
-d.addEventListener('keydown', function(event) {
-    var key;
-    if (event.charCode) { key = event.charCode; } else { key = event.keyCode; };
-    CHAT.ContentLive(key); //向服务器发送移动方向;
-    //if (key == 37 || key == 38 || key == 39 || key == 40 || key == 32) { player2.move(key); }
-});

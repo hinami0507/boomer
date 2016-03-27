@@ -15,14 +15,14 @@
 
 <body>
     <div id="loginbox">
-        <div style="width:260px;margin:200px auto; display:none">
+        <div style="width:260px;margin:200px auto; display:block">
             请先输入你在聊天室的昵称
             <br/>
             <input type="text" style="width:180px;" maxlength="15" placeholder="请输入用户名" id="username" name="username" />
             <input type="button" style="width:50px;" value="提交" onclick="CHAT.usernameSubmit();" />
         </div>
     </div>
-    <div id="room" style="display:block;">
+    <div id="room" style="display:none;">
         <div id="gamebox">
             <svg  xmlns="http://www.w3.org/2000/svg" version="1.1">
                 <rect id="p1"  width="100" height="20" style="fill:red;stroke:black" />
@@ -46,7 +46,9 @@
             <div class="input-box">
                 <input type="text" maxlength="140" placeholder="请输入聊天内容，按Ctrl+enter提交" id="content" name="content">
                 <button type="button" id="mjr_send" onclick="CHAT.submit();">提交</button>
-                <button type="button" id="mjr_send" onclick="CHAT.joinGame();"></button>
+                <button type="button" id="mjr_send" onclick="CHAT.playerJoinFn();">排队</button>
+                <button type="button" id="mjr_send" onclick="CHAT.matchJoinFn();">参赛</button>
+                <input id="nowinput"></input>
             </div>
         </div>
     </div>
