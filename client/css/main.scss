@@ -5,31 +5,30 @@
 
 #gamebox {
     float: left;
-    width: 1000px;
+    width: 900px;
     height: 750px;
     background: #E0E0E0;
     svg {
-        width: 1000px;
+        float: left;
+        width: 900px;
         height: 750px;
     }
-    #p1 {
-        
+    #game-msg{
+        position:absolute;
+        left: 900px;
+        top: 0px;
+        width:200px;
+        height: 750px;
+        border:1px solid #000;
+        overflow: auto;
     }
-    // #p1{
-    // 	position:absolute;
-    // 	background:red;
-    // 	height: 50px;
-    // 	width:50px;
-    // 	left:50px;
-    // 	top:50px;
-    //     -webkit-transition: left,right 2s;
 }
 
 #chatbox {
     position: absolute;
     right: 0;
     height: 100%;
-    width: 350px;
+    width: 320px;
     overflow: hidden;
     .head-box {
         background: #E0E0E0;

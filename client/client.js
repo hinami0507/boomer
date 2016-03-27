@@ -4,6 +4,7 @@
 var d = document,
     w = window,
     doc = document.getElementById("doc-box"),
+    game = document.getElementById("game-msg"),
     g = document.getElementById("gamebox"),
     gm = document.getElementById("map"),
     p1 = document.getElementById("p1"),
@@ -16,6 +17,7 @@ var d = document,
 
 w.CHAT = {
     msgObj: d.getElementById("message"),
+    gameMsg: d.getElementById("game-msg"),
     screenheight: w.innerHeight ? w.innerHeight : dx.clientHeight,
     username: null,
     userid: null,
@@ -24,6 +26,7 @@ w.CHAT = {
     //让浏览器滚动条保持在最低部
     scrollToBottom: function() {
         //w.scrollTo(0, this.msgObj.clientHeight);
+        game.scrollTop = game.clientHeight;
         doc.scrollTop = doc.clientHeight;
     },
     //退出，本例只是一个简单的刷新
@@ -80,6 +83,37 @@ w.CHAT = {
         this.msgObj.appendChild(section);
         this.scrollToBottom();
     },
+    upGameSysMsg: function(o, action) {
+        //当前在线用户列表
+        var onlinePlayer = o.onlinePlayer;
+        //当前在线人数
+        var playerCount = o.playerCount;
+        //新加入用户的信息
+        var user = o.user;
+
+        //更新在线人数
+        var userhtml = '';
+        var separator = '';
+        for (key in onlinePlayer) {
+            if (onlinePlayer.hasOwnProperty(key)) {
+                userhtml += separator + onlinePlayer[key];
+                separator = '、';
+            }
+        }
+        d.getElementById("onlinecount").innerHTML = '当前共有 ' + playerCount + ' 人在线，在线列表：' + userhtml;
+
+        //添加系统消息
+        var html = '';
+        html += '<div class="msg-system">';
+        html += user.username;
+        html += ":"+action;
+        html += '</div>';
+        var section = d.createElement('section');
+        section.className = 'wordbox';
+        section.innerHTML = html;
+        this.gameMsg.appendChild(section);
+        this.scrollToBottom();
+    },
     //第一个界面用户提交用户名
     usernameSubmit: function() {
         var username = d.getElementById("username").value;
@@ -98,22 +132,16 @@ w.CHAT = {
             username: this.username
         };
         this.socket.emit('playerJoin', obj);
+        this.socket.emit('matchJoin');
         return false;
     },
-    //申请参赛
-    matchJoinFn: function() { //
-        var obj = {
-            userid: this.userid,
-            username: this.username
-        };
-        this.socket.emit('matchJoin', obj);
-        return false;
-    },
+    
+
     match: function(move) {
         if (nowinput != ''&& this.userid) {
             var obj = {
-                userid: this.userid,
-                username: move
+                id: this.userid,
+                move: move
             };
             this.socket.emit('match', obj);
         }
@@ -147,23 +175,26 @@ w.CHAT = {
         });
         //监听用户加入游戏队列
         this.socket.on('playerJoin', function(o) {
-            CHAT.updateSysMsg(o, 'playerJoin');
+            CHAT.upGameSysMsg(o, 'playerJoin');
         });
         //监听用户参赛
         this.socket.on('matchJoin', function(o) {
-            CHAT.updateSysMsg(o, 'matchJoin');
+            CHAT.upGameSysMsg(o, 'matchJoin');
         });
         //监听用户游戏实况
         this.socket.on('match', function(o) {
-            CHAT.updateSysMsg(o, 'match');
+            if(o.player==1)
+            	player1.move(o.move);
+            if(o.player==2)
+            	player2.move(o.move);
         });
         //监听用户退出比赛
         this.socket.on('matchExit', function(o) {
-            CHAT.updateSysMsg(o, 'matchExit');
+            CHAT.upGameSysMsg(o, 'matchExit');
         });
         //监听用户退出游戏队列
         this.socket.on('playerExit', function(o) {
-            CHAT.updateSysMsg(o, 'playerExit');
+            CHAT.upGameSysMsg(o, 'playerExit');
         });
         //监听用户退出
         this.socket.on('logout', function(o) {

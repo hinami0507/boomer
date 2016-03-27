@@ -53,18 +53,27 @@ button {
 
 #gamebox {
   float: left;
-  width: 1000px;
+  width: 900px;
   height: 750px;
   background: #E0E0E0; }
   #gamebox svg {
-    width: 1000px;
+    float: left;
+    width: 900px;
     height: 750px; }
+  #gamebox #game-msg {
+    position: absolute;
+    left: 900px;
+    top: 0px;
+    width: 200px;
+    height: 750px;
+    border: 1px solid #000;
+    overflow: auto; }
 
 #chatbox {
   position: absolute;
   right: 0;
   height: 100%;
-  width: 350px;
+  width: 320px;
   overflow: hidden; }
   #chatbox .head-box {
     background: #E0E0E0;

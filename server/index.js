@@ -11,13 +11,36 @@ var onlineUsers = {};
 //当前在线人数
 var onlineCount = 0;
 //游戏排队用户
-var onlinePlayer = {};
+var playerList = [];
 //排队人数
 var playerCount = 0;
-//
-var matchList = {};
-
+//参赛者名单
+var matchList = [];
+//参赛人数
 var matchCount = 0;
+//一场比赛同时进行的人数
+var comp =2;
+var ready=0; //准备人数
+
+function exisPlayer(id) {
+    var resultPlayer = playerList.some(function(item, index, array) {
+        return (item == id);
+    });
+    if(resultPlayer)
+    	{return true;}
+    else
+    	{return false;}
+}
+
+function exisMatch(id) {
+    var resultMatch = matchList.some(function(item, index, array) {
+        return (item == id);
+    });
+    if(resultMatch)
+    	{return true;}
+    else
+    	{return false;}
+}
 
 
 io.on('connection', function(socket) {
@@ -42,86 +65,94 @@ io.on('connection', function(socket) {
 
     //监听用户加入游戏队列
     socket.on('playerJoin', function(obj) {
-        socket.name = obj.userid; //获取加入游戏队列用户名字
-        //检查队列中列表，如果不在里边就加入
-        if (!onlinePlayer.hasOwnProperty(obj.userid)) {
-            onlinePlayer[obj.userid] = obj.username;
-            playerCount++;
+
+        //检查用户是否在排队或者已经参赛，如果不在里边就加入
+        if (exisPlayer(obj.id)&&exisMatch(obj.id)) {
+            playerList.push(obj.userid); //加入该用户id
         }
         //向所有客户端广播用户排队
-        io.emit('playerJoin', { onlinePlayer: onlinePlayer, playerCount: playerCount, user: obj });
-        console.log(obj.username + '加入了游戏队列');
+        io.emit('playerJoin', { playerList: playerList, playerCount: playerList.length, user: obj });
     });
 
     //监听用户参加比赛
     socket.on('matchJoin', function(obj) {
-        socket.name = obj.userid; //获取参赛者名字
-        //检查队列中列表，如果不在里边就加入
+        if (playerList.length > 0 && matchList.length <= 2) //如果有人排队，并且参赛者人数未满，
+        {
+            matchList.pop(playerList.shift()); //取出排队排在前的用户放到matchList中
+            io.emit('matchJoin', { matchList: matchList }); //向所有客户端广播用户参赛
+            console.log(obj.username + '参加了比赛');
+        }
+    });
+
+    socket.on('matchReady', function(obj) {
+            if(exisMatch(obj.id))
+            {
+            	ready++;
+            }
+            if(ready==comp)
+            {
+            	socket.emit("match");
+            	console.log("游戏开始！");
+            	ready=0;
+            }
+        })
+        //监听比赛实况
+    socket.on('match', function(obj) {
+        if (obj.id==matchList[0]) {     //检测0号参赛者发来的操作数,广播其操作
+        	io.emit('match', {player:1,move:obj.move})
+        }
+        if(obj.id == matchList[1]){     //检测1号参赛者发来的操作数,广播其操作
+        	io.emit('match', {player:2,move:obj.move})
+        }
+    });
+
+    //监听用户退出比赛
+    socket.on('matchExit', function(obj) {
+        socket.name = obj.userid;
         if (!matchList.hasOwnProperty(obj.userid)) {
             matchList[obj.userid] = obj.username;
             matchCount++;
         }
-        //向所有客户端广播用户参赛
-        io.emit('matchJoin', { matchList: matchList, matchCount: matchCount, user: obj });
-        console.log(obj.username + '参加了比赛');
+        io.emit('matchExit', { matchList: matchList, matchCount: matchCount, user: obj });
+        console.log(obj.username + '退出了比赛');
     });
 
-    //监听比赛实况
-    socket.on('match', function(obj) {
-            socket.name = obj.userid;
-            //判断是否是参赛者中发来的信息
-        
-        //向所有客户端广播游戏实况
-        io.emit('match', { matchList: matchList, matchCount: matchCount, user: obj }); console.log(obj.username + '游戏实况');
+    //监听用户退出游戏队列
+    socket.on('playerExit', function() {
+        if (playerList.hasOwnProperty(socket.name)) {
+            var obj = { userid: socket.name, username: playerList[socket.name] };
+            delete playerList[socket.name];
+            playerCount--;
+            io.emit('playerExit', { playerList: playerList, playerCount: playerCount, user: obj });
+            console(obj.username + '退出了游戏队列');
+        }
     });
 
-//监听用户退出比赛
-socket.on('matchExit', function(obj) {
-    socket.name = obj.userid;
-    if (!matchList.hasOwnProperty(obj.userid)) {
-        matchList[obj.userid] = obj.username;
-        matchCount++;
-    }
-    io.emit('matchExit', { matchList: matchList, matchCount: matchCount, user: obj });
-    console.log(obj.username + '退出了比赛');
-});
+    //监听用户退出
+    socket.on('disconnect', function() {
+        // 检查将退出用户的排队和比赛删除
+        //将退出的用户从在线列表中删除
+        if (onlineUsers.hasOwnProperty(socket.name)) {
+            //退出用户的信息
+            var obj = { userid: socket.name, username: onlineUsers[socket.name] };
 
-//监听用户退出游戏队列
-socket.on('playerExit', function() {
-    if (onlinePlayer.hasOwnProperty(socket.name)) {
-        var obj = { userid: socket.name, username: onlinePlayer[socket.name] };
-        delete onlinePlayer[socket.name];
-        playerCount--;
-        io.emit('playerExit', { onlinePlayer: onlinePlayer, playerCount: playerCount, user: obj });
-        console(obj.username + '退出了游戏队列');
-    }
-});
+            //删除
+            delete onlineUsers[socket.name];
+            //在线人数-1
+            onlineCount--;
 
-//监听用户退出
-socket.on('disconnect', function() {
-    // 检查将退出用户的排队和比赛删除
-    //将退出的用户从在线列表中删除
-    if (onlineUsers.hasOwnProperty(socket.name)) {
-        //退出用户的信息
-        var obj = { userid: socket.name, username: onlineUsers[socket.name] };
+            //向所有客户端广播用户退出
+            io.emit('logout', { onlineUsers: onlineUsers, onlineCount: onlineCount, user: obj });
+            console.log(obj.username + '退出了聊天室');
+        }
+    });
 
-        //删除
-        delete onlineUsers[socket.name];
-        //在线人数-1
-        onlineCount--;
-
-        //向所有客户端广播用户退出
-        io.emit('logout', { onlineUsers: onlineUsers, onlineCount: onlineCount, user: obj });
-        console.log(obj.username + '退出了聊天室');
-    }
-});
-
-//监听用户发布聊天内容
-socket.on('message', function(obj) {
-    //向所有客户端广播发布的消息
-    io.emit('message', obj);
-    console.log(obj.username + '说：' + obj.content);
-});
+    //监听用户发布聊天内容
+    socket.on('message', function(obj) {
+        //向所有客户端广播发布的消息
+        io.emit('message', obj);
+        console.log(obj.username + '说：' + obj.content);
+    });
 
 
 });
