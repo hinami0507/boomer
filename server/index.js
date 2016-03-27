@@ -10,6 +10,15 @@ app.get('/', function(req, res){
 var onlineUsers = {};
 //当前在线人数
 var onlineCount = 0;
+//游戏排队用户
+var onlinePlayer = {};
+//排队人数
+var playerCount = 0;
+//
+var matchList ={};
+
+var matchCount = 0;
+
 
 io.on('connection', function(socket){
 	console.log('a user connected');
@@ -30,9 +39,68 @@ io.on('connection', function(socket){
 		io.emit('login', {onlineUsers:onlineUsers, onlineCount:onlineCount, user:obj});
 		console.log(obj.username+'加入了聊天室');
 	});
-	
+
+	//监听用户加入游戏队列
+	socket.on('playerJoin',function(obj){
+		socket.name = obj.userid;       //获取加入游戏队列用户名字
+		//检查队列中列表，如果不在里边就加入
+		if(!onlinePlayer.hasOwnProperty(obj.userid)){
+			onlinePlayer[obj.userid] = obj.username;
+			playerCount++;
+		}
+		//向所有客户端广播用户排队
+		io.emit('playerJoin',{onlinePlayer:onlinePlayer, playerCount:playerCount,user:obj});
+		console.log(obj.username+'加入了游戏队列')；
+	});
+
+	//监听用户参加比赛
+	socket.on('matchJoin',function(obj){
+		socket.name = obj.userid;	//获取参赛者名字
+		//检查队列中列表，如果不在里边就加入
+		if(!matchList.hasOwnProperty(obj.userid)){
+			matchList[obj.userid] = obj.username;
+			matchCount++;
+		}
+		//向所有客户端广播用户参赛
+		io.emit('matchJoin',{matchList:matchList, matchCount:matchCount,user:obj});
+		console.log(obj.username+'开始进行游戏');
+	});
+
+	//监听比赛实况
+	socket.on('matchLive',function(obj){
+			socket.name = obj.userid;
+			//判断是否是参赛者中发来的信息
+		}
+		//向所有客户端广播游戏实况
+		io.emit('matchLive',{matchList:matchList, matchCount:matchCount,user:obj});
+		console.log(obj.username+'开始进行游戏');
+	});
+
+	//监听用户退出比赛
+	socket.on('matchExit',function(obj){
+		socket.name = obj.userid;
+		if(!matchList.hasOwnProperty(obj.userid)){
+			matchList[obj.userid] = obj.username;
+			matchCount++;
+		}
+		io.emit('matchExit',{matchList:matchList, matchCount:matchCount,user:obj});
+		console.log(obj.username+'开始进行游戏');
+	});
+
+	//监听用户退出游戏队列
+	socket.on('playerExit',function(){
+		if(onlinePlayer.hasOwnProperty(socket.name)){
+			var obj = {userid:socket.name, username:onlinePlayer[socket.name]};
+			delete onlinePlayer[socket.name];
+			playerCount--;
+			io.emit('playerExit',{onlinePlayer:onlinePlayer, playerCount:playerCount, user:obj});
+			console(obj.username+'退出了游戏队列');
+		}
+	});
+
 	//监听用户退出
 	socket.on('disconnect', function(){
+			// 检查将退出用户的排队和比赛删除
 		//将退出的用户从在线列表中删除
 		if(onlineUsers.hasOwnProperty(socket.name)) {
 			//退出用户的信息
@@ -56,6 +124,7 @@ io.on('connection', function(socket){
 		console.log(obj.username+'说：'+obj.content);
 	});
   	
+
 });
 
 http.listen(3000, function(){
